@@ -5,215 +5,442 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Freelancer AI Toolkit - Settings</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background: #f5f5f5;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #000000;
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
         }
+
         .container {
-            background: white;
-            border-radius: 12px;
-            padding: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 40px 20px;
         }
-        h1 {
-            color: #1e293b;
-            margin-bottom: 30px;
+
+        .header {
             text-align: center;
+            margin-bottom: 50px;
+            padding-bottom: 30px;
+            border-bottom: 1px solid #333333;
         }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 300;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .header p {
+            color: #888888;
+            font-size: 16px;
+        }
+
         .section {
-            margin-bottom: 30px;
-            padding: 20px;
-            background: #f8fafc;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
+            margin-bottom: 40px;
+            background: #1a1a1a;
+            border: 1px solid #333333;
+            border-radius: 0;
+            overflow: hidden;
         }
-        .section h2 {
-            color: #334155;
-            margin-bottom: 15px;
+
+        .section-header {
+            background: #000000;
+            padding: 20px 30px;
+            border-bottom: 1px solid #333333;
+        }
+
+        .section-header h2 {
+            color: #ffffff;
             font-size: 18px;
+            font-weight: 400;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
+
+        .section-content {
+            padding: 30px;
+        }
+
         .setting-group {
-            margin-bottom: 15px;
+            margin-bottom: 25px;
         }
+
+        .setting-group:last-child {
+            margin-bottom: 0;
+        }
+
         label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: 500;
-            color: #374151;
+            margin-bottom: 8px;
+            font-weight: 400;
+            color: #cccccc;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
+
         input, select, textarea {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
+            padding: 12px 16px;
+            border: 1px solid #333333;
+            border-radius: 0;
             font-size: 14px;
+            background: #000000;
+            color: #ffffff;
+            font-family: inherit;
+            transition: all 0.3s ease;
         }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #ffffff;
+            box-shadow: 0 0 0 1px #ffffff;
+            background: #1a1a1a;
+        }
+
+        input::placeholder, textarea::placeholder {
+            color: #666666;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+            font-family: 'Courier New', monospace;
+        }
+
         .checkbox-group {
             display: flex;
             align-items: center;
-            gap: 8px;
-            margin-bottom: 10px;
+            gap: 12px;
+            margin-bottom: 15px;
+            padding: 12px 0;
+            border-bottom: 1px solid #333333;
         }
+
+        .checkbox-group:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+
         .checkbox-group input[type="checkbox"] {
-            width: auto;
+            width: 20px;
+            height: 20px;
+            margin: 0;
+            cursor: pointer;
         }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            text-transform: none;
+            font-size: 14px;
+            letter-spacing: 0;
+        }
+
         .save-btn {
-            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
-            color: white;
+            background: #ffffff;
+            color: #000000;
             border: none;
-            padding: 12px 30px;
-            border-radius: 6px;
+            padding: 16px 40px;
+            border-radius: 0;
             cursor: pointer;
             font-weight: 500;
-            font-size: 16px;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 50px auto 0;
         }
+
         .save-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+            background: #000000;
+            color: #ffffff;
+            border: 1px solid #ffffff;
         }
+
         .danger-zone {
-            border: 1px solid #fee2e2;
-            background: #fef2f2;
+            border-color: #666666;
+            background: #1a1a1a;
         }
+
+        .danger-zone .section-header {
+            background: #000000;
+            color: #ffffff;
+        }
+
+        .danger-zone .section-header h2::before {
+            content: "⚠️ ";
+            margin-right: 8px;
+        }
+
+        .danger-actions {
+            display: flex;
+            gap: 1px;
+            background: #333333;
+        }
+
         .danger-btn {
-            background: #dc2626;
-            color: white;
+            flex: 1;
+            background: #000000;
+            color: #ffffff;
             border: none;
-            padding: 8px 16px;
-            border-radius: 4px;
+            padding: 12px 20px;
+            border-radius: 0;
             cursor: pointer;
-            margin-right: 10px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .danger-btn:hover {
+            background: #ffffff;
+            color: #000000;
+        }
+
+        .success-message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #ffffff;
+            color: #000000;
+            padding: 16px 24px;
+            border-radius: 0;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 20px 15px;
+            }
+            
+            .section-content {
+                padding: 20px;
+            }
+        }
+
+        /* Custom select styling */
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+            padding-right: 40px;
+        }
+
+        /* File input styling */
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-input-label {
+            display: inline-block;
+            padding: 12px 20px;
+            background: #333333;
+            color: #ffffff;
+            border: 1px solid #333333;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-label:hover {
+            background: #ffffff;
+            color: #000000;
+            border-color: #ffffff;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🤖 Freelancer AI Toolkit Settings</h1>
+        <div class="header">
+            <h1>🤖 Freelancer AI Toolkit</h1>
+            <p>Configure your AI-powered freelancing assistant</p>
+        </div>
 
         <div class="section">
-            <h2>AI Configuration</h2>
-            <div class="setting-group">
-                <label>Preferred AI Provider:</label>
-                <select id="ai-provider">
-                    <option value="huggingface">Hugging Face (Free)</option>
-                    <option value="cohere">Cohere (Free Tier)</option>
-                    <option value="openai">OpenAI (API Key Required)</option>
-                    <option value="local">Local AI (Experimental)</option>
-                </select>
+            <div class="section-header">
+                <h2>AI Configuration</h2>
             </div>
-            <div class="setting-group">
-                <label>API Key (if required):</label>
-                <input type="password" id="api-key" placeholder="Enter your API key">
-            </div>
-            <div class="setting-group">
-                <label>Default Response Tone:</label>
-                <select id="default-tone">
-                    <option value="professional">Professional</option>
-                    <option value="friendly">Friendly</option>
-                    <option value="confident">Confident</option>
-                    <option value="creative">Creative</option>
-                </select>
+            <div class="section-content">
+                <div class="grid-2">
+                    <div class="setting-group">
+                        <label>Preferred AI Provider:</label>
+                        <select id="ai-provider">
+                            <option value="huggingface">Hugging Face (Free)</option>
+                            <option value="cohere">Cohere (Free Tier)</option>
+                            <option value="openai">OpenAI (API Key Required)</option>
+                            <option value="local">Local AI (Experimental)</option>
+                        </select>
+                    </div>
+                    <div class="setting-group">
+                        <label>Default Response Tone:</label>
+                        <select id="default-tone">
+                            <option value="professional">Professional</option>
+                            <option value="friendly">Friendly</option>
+                            <option value="confident">Confident</option>
+                            <option value="creative">Creative</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="setting-group">
+                    <label>API Key (if required):</label>
+                    <input type="password" id="api-key" placeholder="Enter your API key">
+                </div>
             </div>
         </div>
 
         <div class="section">
-            <h2>Auto-Sync Settings</h2>
-            <div class="checkbox-group">
-                <input type="checkbox" id="auto-sync-gmail">
-                <label for="auto-sync-gmail">Auto-scan Gmail for income</label>
+            <div class="section-header">
+                <h2>Auto-Sync Settings</h2>
             </div>
-            <div class="checkbox-group">
-                <input type="checkbox" id="auto-sync-whatsapp">
-                <label for="auto-sync-whatsapp">Auto-scan WhatsApp for payments</label>
-            </div>
-            <div class="checkbox-group">
-                <input type="checkbox" id="auto-backup">
-                <label for="auto-backup">Auto-backup data weekly</label>
-            </div>
-            <div class="setting-group">
-                <label>Sync Frequency:</label>
-                <select id="sync-frequency">
-                    <option value="hourly">Every Hour</option>
-                    <option value="daily">Daily</option>
-                    <option value="weekly">Weekly</option>
-                    <option value="manual">Manual Only</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>Notifications</h2>
-            <div class="checkbox-group">
-                <input type="checkbox" id="show-notifications">
-                <label for="show-notifications">Show notifications</label>
-            </div>
-            <div class="checkbox-group">
-                <input type="checkbox" id="payment-alerts">
-                <label for="payment-alerts">Alert when payment detected</label>
-            </div>
-            <div class="checkbox-group">
-                <input type="checkbox" id="weekly-reports">
-                <label for="weekly-reports">Weekly income reports</label>
+            <div class="section-content">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="auto-sync-gmail">
+                    <label for="auto-sync-gmail">Auto-scan Gmail for income</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="auto-sync-whatsapp">
+                    <label for="auto-sync-whatsapp">Auto-scan WhatsApp for payments</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="auto-backup">
+                    <label for="auto-backup">Auto-backup data weekly</label>
+                </div>
+                <div class="setting-group">
+                    <label>Sync Frequency:</label>
+                    <select id="sync-frequency">
+                        <option value="hourly">Every Hour</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="manual">Manual Only</option>
+                    </select>
+                </div>
             </div>
         </div>
 
         <div class="section">
-            <h2>Personal Information</h2>
-            <div class="setting-group">
-                <label>Your Name:</label>
-                <input type="text" id="user-name" placeholder="Enter your name">
+            <div class="section-header">
+                <h2>Notifications</h2>
             </div>
-            <div class="setting-group">
-                <label>Email:</label>
-                <input type="email" id="user-email" placeholder="Enter your email">
-            </div>
-            <div class="setting-group">
-                <label>Business Name:</label>
-                <input type="text" id="business-name" placeholder="Enter your business name">
-            </div>
-            <div class="setting-group">
-                <label>Currency:</label>
-                <select id="currency">
-                    <option value="USD">USD ($)</option>
-                    <option value="EUR">EUR (€)</option>
-                    <option value="GBP">GBP (£)</option>
-                    <option value="CAD">CAD ($)</option>
-                    <option value="AUD">AUD ($)</option>
-                </select>
+            <div class="section-content">
+                <div class="checkbox-group">
+                    <input type="checkbox" id="show-notifications">
+                    <label for="show-notifications">Show notifications</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="payment-alerts">
+                    <label for="payment-alerts">Alert when payment detected</label>
+                </div>
+                <div class="checkbox-group">
+                    <input type="checkbox" id="weekly-reports">
+                    <label for="weekly-reports">Weekly income reports</label>
+                </div>
             </div>
         </div>
 
         <div class="section">
-            <h2>Invoice Templates</h2>
-            <div class="setting-group">
-                <label>Default Invoice Template:</label>
-                <select id="default-invoice">
-                    <option value="basic">Basic</option>
-                    <option value="professional">Professional</option>
-                    <option value="creative">Creative</option>
-                </select>
+            <div class="section-header">
+                <h2>Personal Information</h2>
             </div>
-            <div class="setting-group">
-                <label>Payment Terms:</label>
-                <textarea id="payment-terms" rows="3" placeholder="Enter default payment terms">Payment is due within 30 days of invoice date. Late payments may incur additional fees.</textarea>
+            <div class="section-content">
+                <div class="grid-2">
+                    <div class="setting-group">
+                        <label>Your Name:</label>
+                        <input type="text" id="user-name" placeholder="Enter your name">
+                    </div>
+                    <div class="setting-group">
+                        <label>Email:</label>
+                        <input type="email" id="user-email" placeholder="Enter your email">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="setting-group">
+                        <label>Business Name:</label>
+                        <input type="text" id="business-name" placeholder="Enter your business name">
+                    </div>
+                    <div class="setting-group">
+                        <label>Currency:</label>
+                        <select id="currency">
+                            <option value="USD">USD ($)</option>
+                            <option value="EUR">EUR (€)</option>
+                            <option value="GBP">GBP (£)</option>
+                            <option value="CAD">CAD ($)</option>
+                            <option value="AUD">AUD ($)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-header">
+                <h2>Invoice Templates</h2>
+            </div>
+            <div class="section-content">
+                <div class="setting-group">
+                    <label>Default Invoice Template:</label>
+                    <select id="default-invoice">
+                        <option value="basic">Basic</option>
+                        <option value="professional">Professional</option>
+                        <option value="creative">Creative</option>
+                    </select>
+                </div>
+                <div class="setting-group">
+                    <label>Payment Terms:</label>
+                    <textarea id="payment-terms" rows="4" placeholder="Enter default payment terms">Payment is due within 30 days of invoice date. Late payments may incur additional fees.</textarea>
+                </div>
             </div>
         </div>
 
         <div class="section danger-zone">
-            <h2>⚠️ Danger Zone</h2>
-            <p>These actions cannot be undone.</p>
-            <button class="danger-btn" id="export-data">📤 Export All Data</button>
-            <button class="danger-btn" id="import-data">📥 Import Data</button>
-            <button class="danger-btn" id="clear-data">🗑️ Clear All Data</button>
-            <input type="file" id="import-file" accept=".json" style="display: none;">
+            <div class="section-header">
+                <h2>Danger Zone</h2>
+            </div>
+            <div class="section-content">
+                <p style="margin-bottom: 20px; color: #888888;">These actions cannot be undone. Please proceed with caution.</p>
+                <div class="danger-actions">
+                    <button class="danger-btn" id="export-data">📤 Export All Data</button>
+                    <button class="danger-btn" id="import-data">📥 Import Data</button>
+                    <button class="danger-btn" id="clear-data">🗑️ Clear All Data</button>
+                </div>
+                <input type="file" id="import-file" accept=".json">
+            </div>
         </div>
 
-        <div style="text-align: center; margin-top: 30px;">
-            <button class="save-btn" id="save-settings">💾 Save Settings</button>
-        </div>
+        <button class="save-btn" id="save-settings">💾 Save Settings</button>
     </div>
 
     <script>
@@ -278,15 +505,7 @@
             await chrome.storage.local.set({ settings });
 
             // Show success message
-            const btn = document.getElementById('save-settings');
-            const originalText = btn.textContent;
-            btn.textContent = '✅ Saved!';
-            btn.style.background = '#10b981';
-
-            setTimeout(() => {
-                btn.textContent = originalText;
-                btn.style.background = '';
-            }, 2000);
+            showSuccessMessage('Settings saved successfully!');
         }
 
         async function exportData() {
@@ -297,9 +516,12 @@
             const a = document.createElement('a');
             a.href = url;
             a.download = `freelancer-toolkit-backup-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
 
             URL.revokeObjectURL(url);
+            showSuccessMessage('Data exported successfully!');
         }
 
         async function importData(event) {
@@ -314,8 +536,10 @@
                     await chrome.storage.local.clear();
                     await chrome.storage.local.set(data);
 
-                    alert('Data imported successfully! Please refresh the page.');
-                    window.location.reload();
+                    showSuccessMessage('Data imported successfully! Refreshing page...');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
                 }
             } catch (error) {
                 alert('Error importing data: ' + error.message);
@@ -326,10 +550,25 @@
             if (confirm('This will permanently delete all your data. Are you absolutely sure?')) {
                 if (confirm('Last chance - this cannot be undone!')) {
                     await chrome.storage.local.clear();
-                    alert('All data cleared successfully!');
-                    window.location.reload();
+                    showSuccessMessage('All data cleared successfully! Refreshing page...');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
                 }
             }
+        }
+
+        function showSuccessMessage(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.textContent = message;
+            document.body.appendChild(successDiv);
+
+            setTimeout(() => {
+                if (successDiv.parentElement) {
+                    successDiv.remove();
+                }
+            }, 4000);
         }
     </script>
 </body>
