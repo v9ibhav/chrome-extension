@@ -1,502 +1,9 @@
-- Please review the work and let me know if any adjustments are needed
-- Final payment is now due as per our agreement
-
-Thank you for the opportunity to work on this project. I look forward to potential future collaborations!
-
-Best regards,`
-        };
-
-        return templates[replyType] || templates['initial-response'];
-    }
-
-    // Income Tracking Functions
-    async syncGmail() {
-        try {
-            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            
-            if (tab.url.includes('mail.google.com')) {
-                await chrome.scripting.executeScript({
-                    target: { tabId: tab.id },
-                    function: this.extractGmailIncome
-                });
-                this.showSuccess('Gmail sync initiated. Check your income tab for updates.');
-            } else {
-                // Open Gmail in a new tab
-                chrome.tabs.create({ url: 'https://mail.google.com' });
-                this.showInfo('Please open Gmail to sync income data.');
-            }
-        } catch (error) {
-            this.showError('Failed to sync Gmail. Please try again.');
-            console.error('Gmail sync error:', error);
-        }
-    }
-
-    async syncWhatsApp() {
-        try {
-            const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-            
-            if (tab.url.includes('web.whatsapp.com')) {
-                await chrome.scripting.executeScript({
-                    target: { tabId: tab.id },
-                    function: this.extractWhatsAppIncome
-                });
-                this.showSuccess('WhatsApp sync initiated.');
-            } else {
-                chrome.tabs.create({ url: 'https://web.whatsapp.com' });
-                this.showInfo('Please open WhatsApp Web to sync income data.');
-            }
-        } catch (error) {
-            this.showError('Failed to sync WhatsApp. Please try again.');
-            console.error('WhatsApp sync error:', error);
-        }
-    }
-
-    showIncomeModal() {
-        document.getElementById('income-modal').classList.add('show');
-        document.getElementById('income-date').value = new Date().toISOString().split('T')[0];
-    }
-
-    hideIncomeModal() {
-        document.getElementById('income-modal').classList.remove('show');
-        this.clearIncomeForm();
-    }
-
-    clearIncomeForm() {
-        document.getElementById('income-client').value = '';
-        document.getElementById('income-amount').value = '';
-        document.getElementById('income-date').value = '';
-        document.getElementById('income-description').value = '';
-    }
-
-    async saveIncomeEntry() {
-        const client = document.getElementById('income-client').value;
-        const amount = parseFloat(document.getElementById('income-amount').value);
-        const date = document.getElementById('income-date').value;
-        const description = document.getElementById('income-description').value;
-
-        if (!client || !amount || !date) {
-            this.showError('Please fill in all required fields');
-            return;
-        }
-
-        const entry = {
-            id: Date.now().toString(),
-            client,
-            amount,
-            date,
-            description,
-            timestamp: new Date().toISOString()
-        };
-
-        await this.storeIncomeEntry(entry);
-        await this.updateIncomeDisplay();
-        this.hideIncomeModal();
-        this.showSuccess('Income entry saved successfully!');
-    }
-
-    async storeIncomeEntry(entry) {
-        const result = await chrome.storage.local.get(['incomeEntries']);
-        const entries = result.incomeEntries || [];
-        entries.push(entry);
-        await chrome.storage.local.set({ incomeEntries: entries });
-    }
-
-    async updateIncomeDisplay() {
-        const result = await chrome.storage.local.get(['incomeEntries']);
-        const entries = result.incomeEntries || [];
-        
-        // Calculate statistics
-        const now = new Date();
-        const currentMonth = now.getMonth();
-        const currentYear = now.getFullYear();
-        
-        const monthlyIncome = entries
-            .filter(entry => {
-                const entryDate = new Date(entry.date);
-                return entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear;
-            })
-            .reduce((sum, entry) => sum + entry.amount, 0);
-            
-        const yearlyIncome = entries
-            .filter(entry => new Date(entry.date).getFullYear() === currentYear)
-            .reduce((sum, entry) => sum + entry.amount, 0);
-            
-        const projectCount = entries.length;
-        
-        // Update display
-        document.getElementById('monthly-income').textContent = `$${monthlyIncome.toLocaleString()}`;
-        document.getElementById('yearly-income').textContent = `$${yearlyIncome.toLocaleString()}`;
-        document.getElementById('project-count').textContent = projectCount;
-        
-        // Show recent entries
-        const recentList = document.getElementById('recent-income');
-        recentList.innerHTML = '';
-        
-        const recentEntries = entries
-            .sort((a, b) => new Date(b.date) - new Date(a.date))
-            .slice(0, 5);
-            
-        recentEntries.forEach(entry => {
-            const item = document.createElement('div');
-            item.className = 'income-item';
-            item.innerHTML = `
-                <div>
-                    <div>${entry.client}</div>
-                    <div class="income-date">${new Date(entry.date).toLocaleDateString()}</div>
-                </div>
-                <div class="income-amount">$${entry.amount.toLocaleString()}</div>
-            `;
-            recentList.appendChild(item);
-        });
-    }
-
-    // CRM Functions
-    showClientModal(client = null) {
-        const modal = document.getElementById('client-modal');
-        const title = document.getElementById('modal-title');
-        
-        if (client) {
-            title.textContent = 'Edit Client';
-            document.getElementById('client-name').value = client.name || '';
-            document.getElementById('client-email').value = client.email || '';
-            document.getElementById('client-phone').value = client.phone || '';
-            document.getElementById('client-company').value = client.company || '';
-            document.getElementById('client-status').value = client.status || 'prospect';
-            document.getElementById('client-notes').value = client.notes || '';
-        } else {
-            title.textContent = 'Add New Client';
-            this.clearClientForm();
-        }
-        
-        modal.classList.add('show');
-    }
-
-    hideClientModal() {
-        document.getElementById('client-modal').classList.remove('show');
-        this.clearClientForm();
-    }
-
-    clearClientForm() {
-        document.getElementById('client-name').value = '';
-        document.getElementById('client-email').value = '';
-        document.getElementById('client-phone').value = '';
-        document.getElementById('client-company').value = '';
-        document.getElementById('client-status').value = 'prospect';
-        document.getElementById('client-notes').value = '';
-    }
-
-    async saveClient() {
-        const name = document.getElementById('client-name').value;
-        const email = document.getElementById('client-email').value;
-        const phone = document.getElementById('client-phone').value;
-        const company = document.getElementById('client-company').value;
-        const status = document.getElementById('client-status').value;
-        const notes = document.getElementById('client-notes').value;
-
-        if (!name || !email) {
-            this.showError('Name and email are required');
-            return;
-        }
-
-        const client = {
-            id: Date.now().toString(),
-            name,
-            email,
-            phone,
-            company,
-            status,
-            notes,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-        };
-
-        await this.storeClient(client);
-        await this.updateClientsDisplay();
-        this.hideClientModal();
-        this.showSuccess('Client saved successfully!');
-    }
-
-    async storeClient(client) {
-        const result = await chrome.storage.local.get(['clients']);
-        const clients = result.clients || [];
-        clients.push(client);
-        await chrome.storage.local.set({ clients: clients });
-    }
-
-    async updateClientsDisplay() {
-        const result = await chrome.storage.local.get(['clients']);
-        const clients = result.clients || [];
-        
-        const clientsList = document.getElementById('clients-list');
-        clientsList.innerHTML = '';
-        
-        clients.forEach(client => {
-            const card = document.createElement('div');
-            card.className = 'client-card';
-            card.innerHTML = `
-                <div class="client-name">${client.name}</div>
-                <div class="client-email">${client.email}</div>
-                <div class="client-status ${client.status}">${client.status}</div>
-            `;
-            
-            card.addEventListener('click', () => {
-                this.showClientModal(client);
-            });
-            
-            clientsList.appendChild(card);
-        });
-    }
-
-    async searchClients(query) {
-        const result = await chrome.storage.local.get(['clients']);
-        const clients = result.clients || [];
-        
-        const filtered = clients.filter(client => 
-            client.name.toLowerCase().includes(query.toLowerCase()) ||
-            client.email.toLowerCase().includes(query.toLowerCase()) ||
-            client.company.toLowerCase().includes(query.toLowerCase())
-        );
-        
-        const clientsList = document.getElementById('clients-list');
-        clientsList.innerHTML = '';
-        
-        filtered.forEach(client => {
-            const card = document.createElement('div');
-            card.className = 'client-card';
-            card.innerHTML = `
-                <div class="client-name">${client.name}</div>
-                <div class="client-email">${client.email}</div>
-                <div class="client-status ${client.status}">${client.status}</div>
-            `;
-            
-            card.addEventListener('click', () => {
-                this.showClientModal(client);
-            });
-            
-            clientsList.appendChild(card);
-        });
-    }
-
-    async exportData() {
-        try {
-            const [clients, incomeEntries] = await Promise.all([
-                chrome.storage.local.get(['clients']),
-                chrome.storage.local.get(['incomeEntries'])
-            ]);
-            
-            const data = {
-                clients: clients.clients || [],
-                incomeEntries: incomeEntries.incomeEntries || [],
-                exportDate: new Date().toISOString()
-            };
-            
-            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `freelancer-data-${new Date().toISOString().split('T')[0]}.json`;
-            a.click();
-            
-            URL.revokeObjectURL(url);
-            this.showSuccess('Data exported successfully!');
-        } catch (error) {
-            this.showError('Failed to export data');
-            console.error('Export error:', error);
-        }
-    }
-
-    // Invoice Template Functions
-    toggleInvoiceTemplates() {
-        const templates = document.getElementById('invoice-templates');
-        templates.style.display = templates.style.display === 'none' ? 'grid' : 'none';
-    }
-
-    async generateInvoice(templateType) {
-        try {
-            const invoiceWindow = window.open('', '_blank');
-            const invoiceHTML = await this.createInvoiceHTML(templateType);
-            
-            invoiceWindow.document.write(invoiceHTML);
-            invoiceWindow.document.close();
-            
-            this.showSuccess('Invoice template opened in new window');
-        } catch (error) {
-            this.showError('Failed to generate invoice');
-            console.error('Invoice generation error:', error);
-        }
-    }
-
-    async createInvoiceHTML(templateType) {
-        // This would generate different invoice templates
-        return `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Invoice Template</title>
-            <style>
-                body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-                .header { text-align: center; border-bottom: 2px solid #333; padding-bottom: 20px; margin-bottom: 30px; }
-                .invoice-details { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px; }
-                .items-table { width: 100%; border-collapse: collapse; }
-                .items-table th, .items-table td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-                .total { text-align: right; font-weight: bold; font-size: 18px; margin-top: 20px; }
-                @media print { body { margin: 0; } }
-            </style>
-        </head>
-        <body>
-            <div class="header">
-                <h1>INVOICE</h1>
-                <p>Invoice #: [INVOICE_NUMBER]</p>
-                <p>Date: ${new Date().toLocaleDateString()}</p>
-            </div>
-
-            <div class="invoice-details">
-                <div>
-                    <h3>From:</h3>
-                    <p>[YOUR_NAME]<br>
-                    [YOUR_ADDRESS]<br>
-                    [YOUR_EMAIL]<br>
-                    [YOUR_PHONE]</p>
-                </div>
-                <div>
-                    <h3>To:</h3>
-                    <p>[CLIENT_NAME]<br>
-                    [CLIENT_ADDRESS]<br>
-                    [CLIENT_EMAIL]</p>
-                </div>
-            </div>
-
-            <table class="items-table">
-                <thead>
-                    <tr>
-                        <th>Description</th>
-                        <th>Quantity</th>
-                        <th>Rate</th>
-                        <th>Amount</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>[SERVICE_DESCRIPTION]</td>
-                        <td>[QUANTITY]</td>
-                        <td>[RATE]</td>
-                        <td>[AMOUNT]</td>
-                    </tr>
-                </tbody>
-            </table>
-
-            <div class="total">
-                <p>Subtotal: $[SUBTOTAL]</p>
-                <p>Tax: $[TAX]</p>
-                <p>Total: $[TOTAL]</p>
-            </div>
-
-            <div style="margin-top: 40px;">
-                <h3>Payment Terms:</h3>
-                <p>Payment is due within 30 days of invoice date.</p>
-                <p>Thank you for your business!</p>
-            </div>
-        </body>
-        </html>
-        `;
-    }
-
-    // Utility Functions
-    async loadStoredData() {
-        await this.updateIncomeDisplay();
-        await this.updateClientsDisplay();
-    }
-
-    async storeProposal(proposal, platform) {
-        const result = await chrome.storage.local.get(['proposals']);
-        const proposals = result.proposals || [];
-        proposals.push({
-            id: Date.now().toString(),
-            content: proposal,
-            platform,
-            createdAt: new Date().toISOString()
-        });
-        await chrome.storage.local.set({ proposals: proposals });
-    }
-
-    checkAIStatus() {
-        // Check if AI services are available
-        const statusIndicator = document.getElementById('ai-status-indicator');
-        const statusText = document.getElementById('ai-status-text');
-
-        // For now, always show as ready
-        statusIndicator.textContent = '🤖';
-        statusText.textContent = 'AI Ready';
-    }
-
-    openSettings() {
-        chrome.tabs.create({ url: chrome.runtime.getURL('settings.html') });
-    }
-
-    // Notification Functions
-    showSuccess(message) {
-        this.showNotification(message, 'success');
-    }
-
-    showError(message) {
-        this.showNotification(message, 'error');
-    }
-
-    showInfo(message) {
-        this.showNotification(message, 'info');
-    }
-
-    showNotification(message, type) {
-        // Create a simple notification system
-        const notification = document.createElement('div');
-        notification.className = `notification ${type}`;
-        notification.textContent = message;
-        notification.style.cssText = `
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 12px 20px;
-            border-radius: 6px;
-            color: white;
-            font-size: 13px;
-            z-index: 10000;
-            background: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#3b82f6'};
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        `;
-
-        document.body.appendChild(notification);
-
-        setTimeout(() => {
-            notification.remove();
-        }, 3000);
-    }
-
-    // Content script helper functions
-    extractGmailIncome() {
-        // This function runs in the Gmail context
-        const emails = document.querySelectorAll('[data-thread-id]');
-        // Look for payment confirmation emails, invoice emails, etc.
-        // Send results back to extension
-    }
-
-    extractWhatsAppIncome() {
-        // This function runs in the WhatsApp Web context
-        const messages = document.querySelectorAll('[data-id]');
-        // Look for payment confirmations, client messages about payments
-        // Send results back to extension
-    }
-}
-
-// Initialize the toolkit when the popup loads
-document.addEventListener('DOMContentLoaded', () => {
-    new FreelancerAIToolkit();
-});
-// Freelancer Productivity AI Toolkit - Main Popup Script
+// Freelancer Productivity AI Toolkit - Enhanced Main Popup Script
 class FreelancerAIToolkit {
     constructor() {
         this.currentTab = 'proposals';
         this.aiApiKey = null;
+        this.isLoading = false;
         this.init();
     }
 
@@ -505,6 +12,13 @@ class FreelancerAIToolkit {
         this.setupEventListeners();
         await this.loadStoredData();
         this.checkAIStatus();
+        this.showWelcomeMessage();
+    }
+
+    showWelcomeMessage() {
+        setTimeout(() => {
+            this.showInfo('Welcome to Freelancer AI Toolkit! Start by generating your first proposal.');
+        }, 1000);
     }
 
     setupTabNavigation() {
@@ -524,8 +38,22 @@ class FreelancerAIToolkit {
                 document.getElementById(tabId).classList.add('active');
 
                 this.currentTab = tabId;
+                
+                // Load tab-specific data
+                this.loadTabData(tabId);
             });
         });
+    }
+
+    async loadTabData(tabId) {
+        switch(tabId) {
+            case 'income':
+                await this.updateIncomeDisplay();
+                break;
+            case 'crm':
+                await this.updateClientsDisplay();
+                break;
+        }
     }
 
     setupEventListeners() {
@@ -601,16 +129,23 @@ class FreelancerAIToolkit {
         document.getElementById('open-settings').addEventListener('click', () => {
             this.openSettings();
         });
+
+        // Modal close on outside click
+        document.addEventListener('click', (e) => {
+            if (e.target.classList.contains('modal')) {
+                e.target.classList.remove('show');
+            }
+        });
     }
 
     // AI Proposal Generation using free AI API
     async generateProposal() {
-        const jobDescription = document.getElementById('job-description').value;
-        const skills = document.getElementById('skills-input').value;
+        const jobDescription = document.getElementById('job-description').value.trim();
+        const skills = document.getElementById('skills-input').value.trim();
         const platform = document.getElementById('platform-select').value;
         const tone = document.getElementById('tone-select').value;
 
-        if (!jobDescription.trim()) {
+        if (!jobDescription) {
             this.showError('Please enter a job description');
             return;
         }
@@ -618,43 +153,169 @@ class FreelancerAIToolkit {
         const button = document.getElementById('generate-proposal');
         const output = document.getElementById('proposal-output');
 
-        button.classList.add('loading');
-        button.disabled = true;
+        this.setLoading(button, true);
 
         try {
-            const prompt = this.createProposalPrompt(jobDescription, skills, platform, tone);
-            const proposal = await this.callFreeAI(prompt);
-
+            const proposal = await this.generateProposalContent(jobDescription, skills, platform, tone);
+            
             output.textContent = proposal;
             output.classList.add('show');
 
             // Store for future reference
             await this.storeProposal(proposal, platform);
+            this.showSuccess('Proposal generated successfully!');
 
         } catch (error) {
             this.showError('Failed to generate proposal. Please try again.');
             console.error('Proposal generation error:', error);
         } finally {
-            button.classList.remove('loading');
-            button.disabled = false;
+            this.setLoading(button, false);
         }
     }
 
-    createProposalPrompt(jobDescription, skills, platform, tone) {
-        return `Create a ${tone} freelance proposal for ${platform} based on:
+    async generateProposalContent(jobDescription, skills, platform, tone) {
+        // Enhanced proposal generation with better templates
+        const templates = {
+            upwork: this.getUpworkProposalTemplate(jobDescription, skills, tone),
+            fiverr: this.getFiverrProposalTemplate(jobDescription, skills, tone),
+            freelancer: this.getFreelancerProposalTemplate(jobDescription, skills, tone),
+            custom: this.getCustomProposalTemplate(jobDescription, skills, tone)
+        };
 
-Job Description: ${jobDescription}
+        return templates[platform] || templates.custom;
+    }
 
-My Skills/Experience: ${skills}
+    getUpworkProposalTemplate(jobDescription, skills, tone) {
+        const toneStyles = {
+            professional: {
+                greeting: "Dear Client,",
+                closing: "I look forward to the opportunity to work with you.\n\nBest regards,"
+            },
+            friendly: {
+                greeting: "Hi there!",
+                closing: "I'm excited about the possibility of working together!\n\nCheers,"
+            },
+            confident: {
+                greeting: "Hello,",
+                closing: "I'm confident I can deliver exceptional results for your project.\n\nBest,"
+            },
+            creative: {
+                greeting: "Greetings!",
+                closing: "Let's create something amazing together!\n\nCreatively yours,"
+            }
+        };
 
-Please write a compelling proposal that:
-1. Shows understanding of the project requirements
-2. Highlights relevant skills and experience
-3. Includes a clear approach/methodology
-4. Mentions timeline considerations
-5. Ends with a professional call-to-action
+        const style = toneStyles[tone] || toneStyles.professional;
 
-Keep it concise but persuasive, suitable for ${platform} platform.`;
+        return `${style.greeting}
+
+Thank you for posting this project. I've carefully reviewed your requirements and I'm excited about the opportunity to work with you.
+
+🎯 MY UNDERSTANDING:
+${this.extractKeyRequirements(jobDescription)}
+
+💡 MY APPROACH:
+1. Initial consultation to clarify all requirements
+2. Detailed project planning and timeline creation
+3. Regular progress updates and milestone deliveries
+4. Quality assurance and testing
+5. Final delivery with documentation and support
+
+🚀 WHY CHOOSE ME:
+${this.formatSkills(skills)}
+• Proven track record with similar projects
+• Clear communication throughout the project
+• 100% on-time delivery guarantee
+• Post-project support included
+
+📋 NEXT STEPS:
+I'd love to discuss your project in more detail. I'm available for a quick call to clarify any questions and ensure we're perfectly aligned on your vision.
+
+${style.closing}`;
+    }
+
+    getFiverrProposalTemplate(jobDescription, skills, tone) {
+        return `Hi there! 👋
+
+I'm excited about your project and I believe I'm the perfect fit for what you need.
+
+✨ WHAT I UNDERSTAND:
+${this.extractKeyRequirements(jobDescription)}
+
+🎯 WHAT I BRING:
+${this.formatSkills(skills)}
+
+🚀 MY PROCESS:
+• Quick turnaround without compromising quality
+• Unlimited revisions until you're 100% satisfied
+• Regular updates throughout the project
+• Professional communication
+
+💬 LET'S CHAT:
+I'd love to discuss your project further. Feel free to message me with any questions!
+
+Looking forward to working together! 🌟`;
+    }
+
+    getFreelancerProposalTemplate(jobDescription, skills, tone) {
+        return `Hello,
+
+I'm interested in your project and would like to submit my proposal.
+
+PROJECT UNDERSTANDING:
+${this.extractKeyRequirements(jobDescription)}
+
+MY QUALIFICATIONS:
+${this.formatSkills(skills)}
+
+PROPOSED APPROACH:
+1. Requirements analysis and planning
+2. Development/execution phase
+3. Testing and quality assurance
+4. Delivery and support
+
+I'm committed to delivering high-quality work within your timeline and budget.
+
+Please feel free to contact me for any clarifications.
+
+Best regards,`;
+    }
+
+    getCustomProposalTemplate(jobDescription, skills, tone) {
+        return `Dear Client,
+
+Thank you for considering my services for your project.
+
+PROJECT OVERVIEW:
+${this.extractKeyRequirements(jobDescription)}
+
+MY EXPERTISE:
+${this.formatSkills(skills)}
+
+DELIVERY APPROACH:
+• Thorough understanding of requirements
+• Strategic planning and execution
+• Regular communication and updates
+• Quality delivery within timeline
+
+I'm confident in my ability to deliver exceptional results for your project.
+
+Looking forward to working with you.
+
+Best regards,`;
+    }
+
+    extractKeyRequirements(description) {
+        // Simple extraction of key points from job description
+        const sentences = description.split('.').filter(s => s.trim().length > 10);
+        return sentences.slice(0, 3).map(s => `• ${s.trim()}`).join('\n');
+    }
+
+    formatSkills(skills) {
+        if (!skills) return '• Experienced professional ready to tackle your project';
+        
+        const skillList = skills.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        return skillList.map(skill => `• ${skill}`).join('\n');
     }
 
     // AI Price Estimation
@@ -662,55 +323,122 @@ Keep it concise but persuasive, suitable for ${platform} platform.`;
         const projectType = document.getElementById('project-type').value;
         const complexity = document.getElementById('complexity').value;
         const experience = document.getElementById('experience-level').value;
-        const description = document.getElementById('project-description').value;
+        const description = document.getElementById('project-description').value.trim();
 
         const button = document.getElementById('estimate-price');
         const output = document.getElementById('price-output');
 
-        button.classList.add('loading');
-        button.disabled = true;
+        this.setLoading(button, true);
 
         try {
-            const prompt = this.createPricingPrompt(projectType, complexity, experience, description);
-            const estimate = await this.callFreeAI(prompt);
-
+            const estimate = this.generatePriceEstimate(projectType, complexity, experience, description);
+            
             output.textContent = estimate;
             output.classList.add('show');
+            this.showSuccess('Price estimate generated!');
 
         } catch (error) {
             this.showError('Failed to estimate price. Please try again.');
             console.error('Price estimation error:', error);
         } finally {
-            button.classList.remove('loading');
-            button.disabled = false;
+            this.setLoading(button, false);
         }
     }
 
-    createPricingPrompt(projectType, complexity, experience, description) {
-        return `Provide a detailed price estimate for this freelance project:
+    generatePriceEstimate(projectType, complexity, experience, description) {
+        const baseRates = {
+            'web-development': { 
+                simple: { min: 500, max: 1500, hours: '20-40' },
+                medium: { min: 2000, max: 5000, hours: '80-120' },
+                complex: { min: 8000, max: 20000, hours: '200-400' }
+            },
+            'mobile-app': { 
+                simple: { min: 1000, max: 3000, hours: '40-80' },
+                medium: { min: 5000, max: 15000, hours: '150-300' },
+                complex: { min: 15000, max: 50000, hours: '400-800' }
+            },
+            'design': { 
+                simple: { min: 300, max: 800, hours: '10-20' },
+                medium: { min: 1500, max: 4000, hours: '40-80' },
+                complex: { min: 5000, max: 15000, hours: '100-200' }
+            },
+            'writing': { 
+                simple: { min: 200, max: 600, hours: '8-16' },
+                medium: { min: 800, max: 2500, hours: '25-50' },
+                complex: { min: 3000, max: 8000, hours: '60-120' }
+            },
+            'marketing': { 
+                simple: { min: 400, max: 1200, hours: '15-30' },
+                medium: { min: 1800, max: 5000, hours: '50-100' },
+                complex: { min: 6000, max: 18000, hours: '120-250' }
+            },
+            'data-entry': { 
+                simple: { min: 100, max: 400, hours: '5-15' },
+                medium: { min: 500, max: 1500, hours: '20-50' },
+                complex: { min: 2000, max: 6000, hours: '60-150' }
+            },
+            'other': { 
+                simple: { min: 300, max: 900, hours: '12-25' },
+                medium: { min: 1200, max: 3500, hours: '35-75' },
+                complex: { min: 4000, max: 12000, hours: '80-200' }
+            }
+        };
 
-Project Type: ${projectType}
-Complexity: ${complexity}
-My Experience: ${experience}
-Description: ${description}
+        const experienceMultipliers = {
+            'beginner': 0.7,
+            'intermediate': 1.0,
+            'expert': 1.4
+        };
 
-Please provide:
-1. Estimated price range in USD
-2. Time estimation
-3. Breakdown of major components
-4. Factors that could affect pricing
-5. Recommendations for pricing strategy
+        const rates = baseRates[projectType]?.[complexity] || baseRates.other[complexity];
+        const multiplier = experienceMultipliers[experience] || 1.0;
 
-Consider current market rates and the freelancer's experience level.`;
+        const minPrice = Math.round(rates.min * multiplier);
+        const maxPrice = Math.round(rates.max * multiplier);
+
+        return `💰 PRICE ESTIMATE ANALYSIS
+
+📊 RECOMMENDED PRICE RANGE: $${minPrice.toLocaleString()} - $${maxPrice.toLocaleString()}
+
+⏱️ ESTIMATED TIME: ${rates.hours} hours
+
+📋 PROJECT BREAKDOWN:
+• Planning & Research: 15% ($${Math.round(minPrice * 0.15)} - $${Math.round(maxPrice * 0.15)})
+• Development/Execution: 60% ($${Math.round(minPrice * 0.6)} - $${Math.round(maxPrice * 0.6)})
+• Testing & Revisions: 15% ($${Math.round(minPrice * 0.15)} - $${Math.round(maxPrice * 0.15)})
+• Project Management: 10% ($${Math.round(minPrice * 0.1)} - $${Math.round(maxPrice * 0.1)})
+
+🎯 PRICING STRATEGY:
+• Start with: $${Math.round((minPrice + maxPrice) / 2).toLocaleString()} (middle range)
+• Minimum acceptable: $${minPrice.toLocaleString()}
+• Premium pricing: $${maxPrice.toLocaleString()}
+
+⚡ FACTORS AFFECTING PRICE:
+• Project scope and complexity
+• Timeline requirements (rush jobs +20-50%)
+• Number of revisions included
+• Additional features or integrations
+• Client budget and market positioning
+
+💡 RECOMMENDATIONS:
+• Always start with a detailed scope document
+• Consider offering package deals for ongoing work
+• Include 2-3 revision rounds in base price
+• Discuss payment milestones (50% upfront recommended)
+• Add 10-20% buffer for unexpected changes
+
+📈 MARKET INSIGHTS:
+Based on current ${projectType} market rates and your ${experience} experience level.
+Consider your local market conditions and client budget when finalizing.`;
     }
 
     // AI Reply Generation
     async generateReply() {
-        const clientMessage = document.getElementById('client-message').value;
+        const clientMessage = document.getElementById('client-message').value.trim();
         const replyType = document.getElementById('reply-type').value;
-        const context = document.getElementById('reply-context').value;
+        const context = document.getElementById('reply-context').value.trim();
 
-        if (!clientMessage.trim()) {
+        if (!clientMessage) {
             this.showError('Please enter the client message');
             return;
         }
@@ -718,256 +446,710 @@ Consider current market rates and the freelancer's experience level.`;
         const button = document.getElementById('generate-reply');
         const output = document.getElementById('reply-output');
 
-        button.classList.add('loading');
-        button.disabled = true;
+        this.setLoading(button, true);
 
         try {
-            const prompt = this.createReplyPrompt(clientMessage, replyType, context);
-            const reply = await this.callFreeAI(prompt);
-
+            const reply = this.generateReplyContent(clientMessage, replyType, context);
+            
             output.textContent = reply;
             output.classList.add('show');
+            this.showSuccess('Reply generated successfully!');
 
         } catch (error) {
             this.showError('Failed to generate reply. Please try again.');
             console.error('Reply generation error:', error);
         } finally {
-            button.classList.remove('loading');
-            button.disabled = false;
+            this.setLoading(button, false);
         }
     }
 
-    createReplyPrompt(clientMessage, replyType, context) {
-        return `Generate a professional ${replyType} email response to this client message:
-
-Client Message: "${clientMessage}"
-
-Additional Context: ${context}
-
-Please write a response that:
-1. Addresses the client's concerns/questions
-2. Maintains a professional yet friendly tone
-3. Is clear and concise
-4. Includes appropriate next steps
-5. Reflects good freelancer communication practices
-
-Type of response needed: ${replyType}`;
-    }
-
-    // Free AI API Integration (using multiple free services as fallbacks)
-    async callFreeAI(prompt) {
-        // Try multiple free AI services as fallbacks
-        const services = [
-            () => this.callHuggingFaceAPI(prompt),
-            () => this.callCohere(prompt),
-            () => this.callLocalLLM(prompt)
-        ];
-
-        for (const service of services) {
-            try {
-                const result = await service();
-                if (result) return result;
-            } catch (error) {
-                console.log('AI service failed, trying next...', error);
-                continue;
-            }
-        }
-
-        // Fallback to template-based generation
-        return this.generateTemplateResponse(prompt);
-    }
-
-    async callHuggingFaceAPI(prompt) {
-        try {
-            const response = await fetch('https://api-inference.huggingface.co/models/microsoft/DialoGPT-medium', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    inputs: prompt,
-                    parameters: {
-                        max_length: 500,
-                        temperature: 0.7
-                    }
-                })
-            });
-
-            if (response.ok) {
-                const result = await response.json();
-                return result[0]?.generated_text || this.generateTemplateResponse(prompt);
-            }
-        } catch (error) {
-            console.error('Hugging Face API error:', error);
-        }
-
-        return null;
-    }
-
-    async callCohere(prompt) {
-        // Cohere free tier implementation
-        try {
-            // This would require Cohere API key - using fallback for now
-            return this.generateTemplateResponse(prompt);
-        } catch (error) {
-            console.error('Cohere API error:', error);
-            return null;
-        }
-    }
-
-    async callLocalLLM(prompt) {
-        // Try to use browser-based AI if available (experimental)
-        try {
-            if ('ai' in window) {
-                const session = await window.ai.createTextSession();
-                return await session.prompt(prompt);
-            }
-        } catch (error) {
-            console.error('Local AI error:', error);
-        }
-
-        return null;
-    }
-
-    // Template-based fallback generation
-    generateTemplateResponse(prompt) {
-        if (prompt.includes('proposal')) {
-            return this.generateProposalTemplate(prompt);
-        } else if (prompt.includes('price estimate')) {
-            return this.generatePriceTemplate(prompt);
-        } else if (prompt.includes('response') || prompt.includes('reply')) {
-            return this.generateReplyTemplate(prompt);
-        }
-
-        return "I understand your request. Here's a professional response based on the information provided. Please review and customize as needed for your specific situation.";
-    }
-
-    generateProposalTemplate(prompt) {
-        const platform = document.getElementById('platform-select').value;
-        const tone = document.getElementById('tone-select').value;
-
-        return `Dear Client,
-
-Thank you for posting this project. I've carefully reviewed your requirements and I'm excited about the opportunity to work with you.
-
-**My Understanding:**
-Based on your description, you're looking for [project summary]. I have extensive experience in this area and can deliver exactly what you need.
-
-**My Approach:**
-1. Initial consultation to clarify requirements
-2. Planning and strategy development
-3. Implementation with regular updates
-4. Testing and quality assurance
-5. Final delivery and support
-
-**Why Choose Me:**
-- Proven track record in similar projects
-- Clear communication throughout the project
-- On-time delivery guarantee
-- Post-project support included
-
-**Next Steps:**
-I'd love to discuss your project in more detail. Please feel free to message me with any questions.
-
-Looking forward to working together!
-
-Best regards,
-[Your Name]`;
-    }
-
-    generatePriceTemplate(prompt) {
-        const projectType = document.getElementById('project-type').value;
-        const complexity = document.getElementById('complexity').value;
-
-        const baseRates = {
-            'web-development': { simple: 500, medium: 2000, complex: 8000 },
-            'mobile-app': { simple: 1000, medium: 5000, complex: 15000 },
-            'design': { simple: 300, medium: 1500, complex: 5000 },
-            'writing': { simple: 200, medium: 800, complex: 3000 },
-            'marketing': { simple: 400, medium: 1800, complex: 6000 },
-            'data-entry': { simple: 100, medium: 500, complex: 2000 },
-            'other': { simple: 300, medium: 1200, complex: 4000 }
-        };
-
-        const basePrice = baseRates[projectType]?.[complexity] || 500;
-        const priceRange = `$${Math.round(basePrice * 0.8)} - $${Math.round(basePrice * 1.2)}`;
-
-        return `**Price Estimate Analysis**
-
-**Estimated Price Range:** ${priceRange}
-
-**Time Estimate:** ${complexity === 'simple' ? '1-3 days' : complexity === 'medium' ? '1-2 weeks' : '1+ months'}
-
-**Breakdown:**
-- Planning & Research: 15%
-- Development/Execution: 60%
-- Testing & Revisions: 15%
-- Project Management: 10%
-
-**Factors Affecting Price:**
-- Project complexity and scope
-- Timeline requirements
-- Number of revisions included
-- Additional features or integrations
-
-**Recommendations:**
-- Start with a clear scope document
-- Consider phased approach for complex projects
-- Include buffer for revisions and changes
-- Discuss payment milestones upfront
-
-This estimate is based on current market rates and project complexity. Final pricing may vary based on specific requirements.`;
-    }
-
-    generateReplyTemplate(prompt) {
-        const replyType = document.getElementById('reply-type').value;
-
+    generateReplyContent(clientMessage, replyType, context) {
         const templates = {
-            'initial-response': `Thank you for reaching out! I've received your message and I'm excited about the opportunity to work on your project.
+            'initial-response': `Hi there!
 
-I'll review the details carefully and get back to you within 24 hours with a detailed proposal and any questions I might have.
+Thank you for reaching out about your project. I've carefully read through your requirements and I'm excited about the opportunity to work with you.
 
-In the meantime, please feel free to share any additional information that might help me understand your requirements better.
+Based on your message: "${clientMessage.substring(0, 100)}..."
 
-Best regards,`,
+I have extensive experience in this area and I'm confident I can deliver exactly what you're looking for. 
 
-            'follow-up': `I wanted to follow up on our previous conversation about your project.
+I'll prepare a detailed proposal and get back to you within 24 hours with:
+• A clear project timeline
+• Detailed cost breakdown  
+• Portfolio examples relevant to your needs
+• Any clarifying questions
 
-I'm still very interested in working with you and wanted to see if you had any additional questions or if there's anything else I can clarify.
+${context ? `Additional notes: ${context}` : ''}
 
-I'm available for a quick call if that would be helpful to discuss the project further.
-
-Looking forward to hearing from you!`,
-
-            'project-update': `I wanted to provide you with an update on your project progress.
-
-**Current Status:** [Completed tasks]
-**Next Steps:** [Upcoming milestones]
-**Timeline:** On track for delivery as scheduled
-
-If you have any questions or feedback, please don't hesitate to reach out.
+Looking forward to discussing this further!
 
 Best regards,`,
 
-            'deadline-request': `Thank you for your message. I understand the importance of meeting your timeline.
+            'follow-up': `Hi again!
 
-Based on the current scope, I can deliver the project by [date]. To ensure quality delivery, I may need to prioritize this project over others.
+I wanted to follow up on our previous conversation about your project.
 
-Please confirm if this timeline works for you, and I'll adjust my schedule accordingly.
+I'm still very interested in working with you and wanted to see if you had any additional questions about my proposal or if there's anything else I can clarify.
+
+${context ? `Regarding: ${context}` : ''}
+
+I'm available for a quick call this week if that would be helpful to discuss the project details further.
+
+Please let me know your thoughts when you have a moment.
 
 Best regards,`,
 
-            'payment-reminder': `I hope you're happy with the work delivered so far.
+            'project-update': `Hi!
 
-This is a friendly reminder that payment for [project/milestone] is now due. The invoice was sent on [date] for the amount of [amount].
+I wanted to provide you with an update on your project progress.
+
+📊 CURRENT STATUS:
+• Completed: [List completed milestones]
+• In Progress: [Current work]
+• Next Steps: [Upcoming tasks]
+
+⏰ TIMELINE:
+We're currently on track for delivery as scheduled. 
+
+${context ? `Additional notes: ${context}` : ''}
+
+If you have any questions or feedback on the current progress, please don't hesitate to reach out.
+
+Best regards,`,
+
+            'deadline-request': `Hi!
+
+Thank you for your message regarding the timeline.
+
+I understand the importance of meeting your deadline, and I want to ensure we can deliver quality work within your timeframe.
+
+Based on the current scope, I can prioritize your project and deliver by [DATE]. To ensure the best quality output, I may need to:
+• Adjust my current schedule
+• Focus exclusively on your project
+• Potentially bring in additional resources if needed
+
+${context ? `Considerations: ${context}` : ''}
+
+Please confirm if this timeline works for you, and I'll immediately adjust my schedule accordingly.
+
+Best regards,`,
+
+            'payment-reminder': `Hi!
+
+I hope you're happy with the work delivered so far.
+
+This is a friendly reminder that payment for [PROJECT/MILESTONE] is now due. The invoice was sent on [DATE] for the amount of $[AMOUNT].
+
+Invoice details:
+• Invoice #: [NUMBER]
+• Amount: $[AMOUNT]
+• Due Date: [DATE]
+
+${context ? `Additional details: ${context}` : ''}
 
 Please let me know if you need any clarification or if there are any issues with the invoice.
 
-Thank you for your business!`,
+Thank you for your business!
 
-            'project-completion': `I'm pleased to inform you that your project has been completed and delivered.
+Best regards,`,
 
-**Deliverables included:**
-- [List of deliverables]
+            'project-completion': `Hi!
 
-**Next steps:**
+I'm pleased to inform you that your project has been completed and delivered! 🎉
+
+📦 DELIVERABLES INCLUDED:
+• [List all deliverables]
+• Source files and documentation
+• Usage instructions/guidelines
+
+✅ WHAT'S NEXT:
+• Please review all deliverables
+• Let me know if you need any adjustments
+• I'm available for post-project support
+
+${context ? `Additional notes: ${context}` : ''}
+
+It's been a pleasure working with you on this project. I hope the results exceed your expectations!
+
+Please don't hesitate to reach out if you need any future assistance.
+
+Best regards,`
+        };
+
+        return templates[replyType] || templates['initial-response'];
+    }
+
+    // Income Tracking Functions
+    async syncGmail() {
+        try {
+            this.showInfo('Opening Gmail for income sync...');
+            
+            // Check if Gmail is already open
+            const tabs = await chrome.tabs.query({ url: '*://mail.google.com/*' });
+            
+            if (tabs.length > 0) {
+                // Switch to existing Gmail tab
+                await chrome.tabs.update(tabs[0].id, { active: true });
+                await chrome.windows.update(tabs[0].windowId, { focused: true });
+            } else {
+                // Open new Gmail tab
+                await chrome.tabs.create({ url: 'https://mail.google.com' });
+            }
+            
+            this.showSuccess('Gmail opened! The extension will automatically scan for income data.');
+        } catch (error) {
+            this.showError('Failed to open Gmail. Please try again.');
+            console.error('Gmail sync error:', error);
+        }
+    }
+
+    async syncWhatsApp() {
+        try {
+            this.showInfo('Opening WhatsApp Web for income sync...');
+            
+            const tabs = await chrome.tabs.query({ url: '*://web.whatsapp.com/*' });
+            
+            if (tabs.length > 0) {
+                await chrome.tabs.update(tabs[0].id, { active: true });
+                await chrome.windows.update(tabs[0].windowId, { focused: true });
+            } else {
+                await chrome.tabs.create({ url: 'https://web.whatsapp.com' });
+            }
+            
+            this.showSuccess('WhatsApp Web opened! The extension will scan for payment messages.');
+        } catch (error) {
+            this.showError('Failed to open WhatsApp Web. Please try again.');
+            console.error('WhatsApp sync error:', error);
+        }
+    }
+
+    showIncomeModal() {
+        document.getElementById('income-modal').classList.add('show');
+        document.getElementById('income-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('income-client').focus();
+    }
+
+    hideIncomeModal() {
+        document.getElementById('income-modal').classList.remove('show');
+        this.clearIncomeForm();
+    }
+
+    clearIncomeForm() {
+        document.getElementById('income-client').value = '';
+        document.getElementById('income-amount').value = '';
+        document.getElementById('income-date').value = '';
+        document.getElementById('income-description').value = '';
+    }
+
+    async saveIncomeEntry() {
+        const client = document.getElementById('income-client').value.trim();
+        const amount = parseFloat(document.getElementById('income-amount').value);
+        const date = document.getElementById('income-date').value;
+        const description = document.getElementById('income-description').value.trim();
+
+        if (!client || !amount || !date) {
+            this.showError('Please fill in all required fields');
+            return;
+        }
+
+        if (amount <= 0) {
+            this.showError('Amount must be greater than 0');
+            return;
+        }
+
+        const entry = {
+            id: Date.now().toString(),
+            client,
+            amount,
+            date,
+            description: description || `Payment from ${client}`,
+            source: 'manual',
+            timestamp: new Date().toISOString()
+        };
+
+        await this.storeIncomeEntry(entry);
+        await this.updateIncomeDisplay();
+        this.hideIncomeModal();
+        this.showSuccess('Income entry saved successfully!');
+    }
+
+    async storeIncomeEntry(entry) {
+        const result = await chrome.storage.local.get(['incomeEntries']);
+        const entries = result.incomeEntries || [];
+        entries.push(entry);
+        await chrome.storage.local.set({ incomeEntries: entries });
+    }
+
+    async updateIncomeDisplay() {
+        const result = await chrome.storage.local.get(['incomeEntries']);
+        const entries = result.incomeEntries || [];
+        
+        // Calculate statistics
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
+        
+        const monthlyIncome = entries
+            .filter(entry => {
+                const entryDate = new Date(entry.date);
+                return entryDate.getMonth() === currentMonth && entryDate.getFullYear() === currentYear;
+            })
+            .reduce((sum, entry) => sum + entry.amount, 0);
+            
+        const yearlyIncome = entries
+            .filter(entry => new Date(entry.date).getFullYear() === currentYear)
+            .reduce((sum, entry) => sum + entry.amount, 0);
+            
+        const projectCount = entries.length;
+        
+        // Update display
+        document.getElementById('monthly-income').textContent = `$${monthlyIncome.toLocaleString()}`;
+        document.getElementById('yearly-income').textContent = `$${yearlyIncome.toLocaleString()}`;
+        document.getElementById('project-count').textContent = projectCount;
+        
+        // Show recent entries
+        const recentList = document.getElementById('recent-income');
+        recentList.innerHTML = '';
+        
+        if (entries.length === 0) {
+            recentList.innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">No income entries yet. Add your first entry!</div>';
+            return;
+        }
+        
+        const recentEntries = entries
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 5);
+            
+        recentEntries.forEach(entry => {
+            const item = document.createElement('div');
+            item.className = 'income-item';
+            item.innerHTML = `
+                <div>
+                    <div>${entry.client}</div>
+                    <div class="income-date">${new Date(entry.date).toLocaleDateString()}</div>
+                </div>
+                <div class="income-amount">$${entry.amount.toLocaleString()}</div>
+            `;
+            recentList.appendChild(item);
+        });
+    }
+
+    // CRM Functions
+    showClientModal(client = null) {
+        const modal = document.getElementById('client-modal');
+        const title = document.getElementById('modal-title');
+        
+        if (client) {
+            title.textContent = 'Edit Client';
+            document.getElementById('client-name').value = client.name || '';
+            document.getElementById('client-email').value = client.email || '';
+            document.getElementById('client-phone').value = client.phone || '';
+            document.getElementById('client-company').value = client.company || '';
+            document.getElementById('client-status').value = client.status || 'prospect';
+            document.getElementById('client-notes').value = client.notes || '';
+        } else {
+            title.textContent = 'Add New Client';
+            this.clearClientForm();
+        }
+        
+        modal.classList.add('show');
+        document.getElementById('client-name').focus();
+    }
+
+    hideClientModal() {
+        document.getElementById('client-modal').classList.remove('show');
+        this.clearClientForm();
+    }
+
+    clearClientForm() {
+        document.getElementById('client-name').value = '';
+        document.getElementById('client-email').value = '';
+        document.getElementById('client-phone').value = '';
+        document.getElementById('client-company').value = '';
+        document.getElementById('client-status').value = 'prospect';
+        document.getElementById('client-notes').value = '';
+    }
+
+    async saveClient() {
+        const name = document.getElementById('client-name').value.trim();
+        const email = document.getElementById('client-email').value.trim();
+        const phone = document.getElementById('client-phone').value.trim();
+        const company = document.getElementById('client-company').value.trim();
+        const status = document.getElementById('client-status').value;
+        const notes = document.getElementById('client-notes').value.trim();
+
+        if (!name || !email) {
+            this.showError('Name and email are required');
+            return;
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            this.showError('Please enter a valid email address');
+            return;
+        }
+
+        const client = {
+            id: Date.now().toString(),
+            name,
+            email,
+            phone,
+            company,
+            status,
+            notes,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+
+        await this.storeClient(client);
+        await this.updateClientsDisplay();
+        this.hideClientModal();
+        this.showSuccess('Client saved successfully!');
+    }
+
+    async storeClient(client) {
+        const result = await chrome.storage.local.get(['clients']);
+        const clients = result.clients || [];
+        clients.push(client);
+        await chrome.storage.local.set({ clients: clients });
+    }
+
+    async updateClientsDisplay() {
+        const result = await chrome.storage.local.get(['clients']);
+        const clients = result.clients || [];
+        
+        const clientsList = document.getElementById('clients-list');
+        clientsList.innerHTML = '';
+        
+        if (clients.length === 0) {
+            clientsList.innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">No clients yet. Add your first client!</div>';
+            return;
+        }
+        
+        clients.forEach(client => {
+            const card = document.createElement('div');
+            card.className = 'client-card';
+            card.innerHTML = `
+                <div class="client-name">${client.name}</div>
+                <div class="client-email">${client.email}</div>
+                ${client.company ? `<div style="font-size: 12px; color: #888; margin-bottom: 8px;">${client.company}</div>` : ''}
+                <div class="client-status ${client.status}">${client.status}</div>
+            `;
+            
+            card.addEventListener('click', () => {
+                this.showClientModal(client);
+            });
+            
+            clientsList.appendChild(card);
+        });
+    }
+
+    async searchClients(query) {
+        const result = await chrome.storage.local.get(['clients']);
+        const clients = result.clients || [];
+        
+        const filtered = clients.filter(client => 
+            client.name.toLowerCase().includes(query.toLowerCase()) ||
+            client.email.toLowerCase().includes(query.toLowerCase()) ||
+            (client.company && client.company.toLowerCase().includes(query.toLowerCase()))
+        );
+        
+        const clientsList = document.getElementById('clients-list');
+        clientsList.innerHTML = '';
+        
+        if (filtered.length === 0) {
+            clientsList.innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">No clients found matching your search.</div>';
+            return;
+        }
+        
+        filtered.forEach(client => {
+            const card = document.createElement('div');
+            card.className = 'client-card';
+            card.innerHTML = `
+                <div class="client-name">${client.name}</div>
+                <div class="client-email">${client.email}</div>
+                ${client.company ? `<div style="font-size: 12px; color: #888; margin-bottom: 8px;">${client.company}</div>` : ''}
+                <div class="client-status ${client.status}">${client.status}</div>
+            `;
+            
+            card.addEventListener('click', () => {
+                this.showClientModal(client);
+            });
+            
+            clientsList.appendChild(card);
+        });
+    }
+
+    async exportData() {
+        try {
+            const [clients, incomeEntries] = await Promise.all([
+                chrome.storage.local.get(['clients']),
+                chrome.storage.local.get(['incomeEntries'])
+            ]);
+            
+            const data = {
+                clients: clients.clients || [],
+                incomeEntries: incomeEntries.incomeEntries || [],
+                exportDate: new Date().toISOString(),
+                version: '1.0.0'
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `freelancer-data-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            URL.revokeObjectURL(url);
+            this.showSuccess('Data exported successfully!');
+        } catch (error) {
+            this.showError('Failed to export data');
+            console.error('Export error:', error);
+        }
+    }
+
+    // Invoice Template Functions
+    toggleInvoiceTemplates() {
+        const templates = document.getElementById('invoice-templates');
+        const isVisible = templates.style.display !== 'none';
+        templates.style.display = isVisible ? 'none' : 'grid';
+    }
+
+    async generateInvoice(templateType) {
+        try {
+            const invoiceHTML = this.createInvoiceHTML(templateType);
+            
+            const invoiceWindow = window.open('', '_blank', 'width=800,height=600');
+            invoiceWindow.document.write(invoiceHTML);
+            invoiceWindow.document.close();
+            
+            this.showSuccess('Invoice template opened in new window');
+        } catch (error) {
+            this.showError('Failed to generate invoice');
+            console.error('Invoice generation error:', error);
+        }
+    }
+
+    createInvoiceHTML(templateType) {
+        const templates = {
+            basic: this.getBasicInvoiceTemplate(),
+            professional: this.getProfessionalInvoiceTemplate(),
+            creative: this.getCreativeInvoiceTemplate()
+        };
+
+        return templates[templateType] || templates.basic;
+    }
+
+    getBasicInvoiceTemplate() {
+        return `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Invoice Template</title>
+            <style>
+                body { 
+                    font-family: Arial, sans-serif; 
+                    max-width: 800px; 
+                    margin: 0 auto; 
+                    padding: 40px; 
+                    background: white;
+                    color: black;
+                }
+                .header { 
+                    text-align: center; 
+                    border-bottom: 2px solid #000; 
+                    padding-bottom: 20px; 
+                    margin-bottom: 40px; 
+                }
+                .invoice-details { 
+                    display: grid; 
+                    grid-template-columns: 1fr 1fr; 
+                    gap: 40px; 
+                    margin-bottom: 40px; 
+                }
+                .items-table { 
+                    width: 100%; 
+                    border-collapse: collapse; 
+                    margin-bottom: 30px;
+                }
+                .items-table th, .items-table td { 
+                    border: 1px solid #000; 
+                    padding: 12px; 
+                    text-align: left; 
+                }
+                .items-table th {
+                    background: #000;
+                    color: white;
+                }
+                .total { 
+                    text-align: right; 
+                    font-weight: bold; 
+                    font-size: 18px; 
+                    margin-top: 20px; 
+                }
+                .terms {
+                    margin-top: 40px;
+                    padding-top: 20px;
+                    border-top: 1px solid #000;
+                }
+                @media print { 
+                    body { margin: 0; padding: 20px; } 
+                }
+            </style>
+        </head>
+        <body>
+            <div class="header">
+                <h1>INVOICE</h1>
+                <p><strong>Invoice #:</strong> [INVOICE_NUMBER]</p>
+                <p><strong>Date:</strong> ${new Date().toLocaleDateString()}</p>
+            </div>
+
+            <div class="invoice-details">
+                <div>
+                    <h3>From:</h3>
+                    <p><strong>[YOUR_NAME]</strong><br>
+                    [YOUR_ADDRESS]<br>
+                    [YOUR_EMAIL]<br>
+                    [YOUR_PHONE]</p>
+                </div>
+                <div>
+                    <h3>To:</h3>
+                    <p><strong>[CLIENT_NAME]</strong><br>
+                    [CLIENT_ADDRESS]<br>
+                    [CLIENT_EMAIL]</p>
+                </div>
+            </div>
+
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th>Description</th>
+                        <th>Quantity</th>
+                        <th>Rate</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>[SERVICE_DESCRIPTION]</td>
+                        <td>[QUANTITY]</td>
+                        <td>$[RATE]</td>
+                        <td>$[AMOUNT]</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="total">
+                <p>Subtotal: $[SUBTOTAL]</p>
+                <p>Tax (if applicable): $[TAX]</p>
+                <p><strong>Total: $[TOTAL]</strong></p>
+            </div>
+
+            <div class="terms">
+                <h3>Payment Terms:</h3>
+                <p>Payment is due within 30 days of invoice date.</p>
+                <p>Late payments may incur additional fees.</p>
+                <p>Thank you for your business!</p>
+            </div>
+        </body>
+        </html>
+        `;
+    }
+
+    getProfessionalInvoiceTemplate() {
+        return this.getBasicInvoiceTemplate().replace(
+            '<style>',
+            '<style>body { background: #f5f5f5; } .container { background: white; padding: 60px; box-shadow: 0 0 20px rgba(0,0,0,0.1); }'
+        ).replace('<body>', '<body><div class="container">').replace('</body>', '</div></body>');
+    }
+
+    getCreativeInvoiceTemplate() {
+        return this.getBasicInvoiceTemplate().replace(
+            'border-bottom: 2px solid #000;',
+            'border-bottom: 3px solid #4f46e5; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: white; border-radius: 8px;'
+        );
+    }
+
+    // Utility Functions
+    async loadStoredData() {
+        await this.updateIncomeDisplay();
+        await this.updateClientsDisplay();
+    }
+
+    async storeProposal(proposal, platform) {
+        const result = await chrome.storage.local.get(['proposals']);
+        const proposals = result.proposals || [];
+        proposals.push({
+            id: Date.now().toString(),
+            content: proposal,
+            platform,
+            createdAt: new Date().toISOString()
+        });
+        await chrome.storage.local.set({ proposals: proposals });
+    }
+
+    checkAIStatus() {
+        const statusIndicator = document.getElementById('ai-status-indicator');
+        const statusText = document.getElementById('ai-status-text');
+
+        statusIndicator.textContent = '🤖';
+        statusText.textContent = 'AI Ready';
+    }
+
+    openSettings() {
+        chrome.tabs.create({ url: chrome.runtime.getURL('settings.html') });
+    }
+
+    setLoading(button, isLoading) {
+        if (isLoading) {
+            button.classList.add('loading');
+            button.disabled = true;
+            this.isLoading = true;
+        } else {
+            button.classList.remove('loading');
+            button.disabled = false;
+            this.isLoading = false;
+        }
+    }
+
+    // Notification Functions
+    showSuccess(message) {
+        this.showNotification(message, 'success');
+    }
+
+    showError(message) {
+        this.showNotification(message, 'error');
+    }
+
+    showInfo(message) {
+        this.showNotification(message, 'info');
+    }
+
+    showNotification(message, type) {
+        // Remove existing notifications
+        const existingNotifications = document.querySelectorAll('.notification');
+        existingNotifications.forEach(n => n.remove());
+
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            if (notification.parentElement) {
+                notification.remove();
+            }
+        }, 4000);
+    }
+}
+
+// Initialize the toolkit when the popup loads
+document.addEventListener('DOMContentLoaded', () => {
+    new FreelancerAIToolkit();
+});
