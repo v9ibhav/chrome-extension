@@ -1,0 +1,54 @@
+{
+  "manifest_version": 3,
+  "name": "Freelancer Productivity AI Toolkit",
+  "version": "1.0.0",
+  "description": "AI-powered toolkit for freelancers with proposal generation, price estimation, client management, and income tracking",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "tabs",
+    "scripting",
+    "unlimitedStorage"
+  ],
+  "host_permissions": [
+    "https://www.upwork.com/*",
+    "https://www.fiverr.com/*",
+    "https://mail.google.com/*",
+    "https://web.whatsapp.com/*",
+    "*://*/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Freelancer AI Toolkit"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.upwork.com/*", "https://www.fiverr.com/*"],
+      "js": ["content/freelance-platforms.js"]
+    },
+    {
+      "matches": ["https://mail.google.com/*"],
+      "js": ["content/gmail.js"]
+    },
+    {
+      "matches": ["https://web.whatsapp.com/*"],
+      "js": ["content/whatsapp.js"]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["assets/*", "templates/*"],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
+

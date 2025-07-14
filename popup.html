@@ -1,0 +1,232 @@
+                    <h3 id="modal-title">Add New Client</h3>
+                    <input type="text" id="client-name" placeholder="Client Name">
+                    <input type="email" id="client-email" placeholder="Email">
+                    <input type="tel" id="client-phone" placeholder="Phone">
+                    <input type="text" id="client-company" placeholder="Company">
+                    <select id="client-status">
+                        <option value="prospect">Prospect</option>
+                        <option value="active">Active</option>
+                        <option value="completed">Completed</option>
+                        <option value="inactive">Inactive</option>
+                    </select>
+                    <textarea id="client-notes" placeholder="Notes"></textarea>
+                    <div class="modal-actions">
+                        <button id="save-client" class="primary-btn">Save</button>
+                        <button id="cancel-client" class="secondary-btn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Invoice Templates Section -->
+        <div class="invoice-section">
+            <button id="show-invoices" class="secondary-btn">📄 Invoice Templates</button>
+            <div id="invoice-templates" class="templates-grid" style="display: none;">
+                <div class="template-card" data-template="basic">
+                    <h4>Basic Invoice</h4>
+                    <p>Simple invoice template</p>
+                </div>
+                <div class="template-card" data-template="professional">
+                    <h4>Professional</h4>
+                    <p>Detailed invoice with terms</p>
+                </div>
+                <div class="template-card" data-template="creative">
+                    <h4>Creative</h4>
+                    <p>Modern design invoice</p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <div class="settings-link">
+                <button id="open-settings">⚙️ Settings</button>
+            </div>
+        </footer>
+    </div>
+
+    <script src="scripts/popup.js"></script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freelancer AI Toolkit</title>
+    <link rel="stylesheet" href="styles/popup.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Freelancer AI Toolkit</h1>
+            <div class="ai-status">
+                <span id="ai-status-indicator">🤖</span>
+                <span id="ai-status-text">AI Ready</span>
+            </div>
+        </header>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="proposals">📝 Proposals</button>
+            <button class="tab-btn" data-tab="pricing">💰 Pricing</button>
+            <button class="tab-btn" data-tab="client">👥 Client</button>
+            <button class="tab-btn" data-tab="income">📊 Income</button>
+            <button class="tab-btn" data-tab="crm">🏢 CRM</button>
+        </nav>
+
+        <!-- Proposal Generator Tab -->
+        <div id="proposals" class="tab-content active">
+            <h2>AI Proposal Generator</h2>
+            <div class="form-group">
+                <label>Platform:</label>
+                <select id="platform-select">
+                    <option value="upwork">Upwork</option>
+                    <option value="fiverr">Fiverr</option>
+                    <option value="freelancer">Freelancer.com</option>
+                    <option value="custom">Custom</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Job Description:</label>
+                <textarea id="job-description" placeholder="Paste the job description here..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Your Skills/Experience:</label>
+                <textarea id="skills-input" placeholder="Describe your relevant skills and experience..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Tone:</label>
+                <select id="tone-select">
+                    <option value="professional">Professional</option>
+                    <option value="friendly">Friendly</option>
+                    <option value="confident">Confident</option>
+                    <option value="creative">Creative</option>
+                </select>
+            </div>
+            <button id="generate-proposal" class="primary-btn">🎯 Generate AI Proposal</button>
+            <div id="proposal-output" class="output-area"></div>
+        </div>
+
+        <!-- Price Quote Estimator Tab -->
+        <div id="pricing" class="tab-content">
+            <h2>Smart Price Estimator</h2>
+            <div class="form-group">
+                <label>Project Type:</label>
+                <select id="project-type">
+                    <option value="web-development">Web Development</option>
+                    <option value="mobile-app">Mobile App</option>
+                    <option value="design">Design</option>
+                    <option value="writing">Writing</option>
+                    <option value="marketing">Marketing</option>
+                    <option value="data-entry">Data Entry</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Project Complexity:</label>
+                <select id="complexity">
+                    <option value="simple">Simple (1-3 days)</option>
+                    <option value="medium">Medium (1-2 weeks)</option>
+                    <option value="complex">Complex (1+ months)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Your Experience Level:</label>
+                <select id="experience-level">
+                    <option value="beginner">Beginner (0-1 years)</option>
+                    <option value="intermediate">Intermediate (2-5 years)</option>
+                    <option value="expert">Expert (5+ years)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Project Description:</label>
+                <textarea id="project-description" placeholder="Describe the project requirements..."></textarea>
+            </div>
+            <button id="estimate-price" class="primary-btn">💡 Get AI Price Estimate</button>
+            <div id="price-output" class="output-area"></div>
+        </div>
+
+        <!-- Client Communication Tab -->
+        <div id="client" class="tab-content">
+            <h2>Auto Client Reply Drafts</h2>
+            <div class="form-group">
+                <label>Client Message:</label>
+                <textarea id="client-message" placeholder="Paste the client's message here..."></textarea>
+            </div>
+            <div class="form-group">
+                <label>Reply Type:</label>
+                <select id="reply-type">
+                    <option value="initial-response">Initial Response</option>
+                    <option value="follow-up">Follow-up</option>
+                    <option value="project-update">Project Update</option>
+                    <option value="deadline-request">Deadline Request</option>
+                    <option value="payment-reminder">Payment Reminder</option>
+                    <option value="project-completion">Project Completion</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Context/Notes:</label>
+                <textarea id="reply-context" placeholder="Any additional context for the reply..."></textarea>
+            </div>
+            <button id="generate-reply" class="primary-btn">✉️ Generate Reply</button>
+            <div id="reply-output" class="output-area"></div>
+        </div>
+
+        <!-- Income Tracking Tab -->
+        <div id="income" class="tab-content">
+            <h2>Income Tracker</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>This Month</h3>
+                    <div class="stat-value" id="monthly-income">$0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>This Year</h3>
+                    <div class="stat-value" id="yearly-income">$0</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Projects</h3>
+                    <div class="stat-value" id="project-count">0</div>
+                </div>
+            </div>
+
+            <div class="income-actions">
+                <button id="sync-gmail" class="secondary-btn">📧 Sync Gmail</button>
+                <button id="sync-whatsapp" class="secondary-btn">💬 Sync WhatsApp</button>
+                <button id="manual-entry" class="secondary-btn">➕ Manual Entry</button>
+            </div>
+
+            <div id="recent-income" class="recent-list"></div>
+
+            <!-- Manual Income Entry Modal -->
+            <div id="income-modal" class="modal">
+                <div class="modal-content">
+                    <h3>Add Income Entry</h3>
+                    <input type="text" id="income-client" placeholder="Client Name">
+                    <input type="number" id="income-amount" placeholder="Amount">
+                    <input type="date" id="income-date">
+                    <textarea id="income-description" placeholder="Description"></textarea>
+                    <div class="modal-actions">
+                        <button id="save-income" class="primary-btn">Save</button>
+                        <button id="cancel-income" class="secondary-btn">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mini CRM Tab -->
+        <div id="crm" class="tab-content">
+            <h2>Mini CRM</h2>
+            <div class="crm-actions">
+                <button id="add-client" class="primary-btn">➕ Add Client</button>
+                <button id="export-data" class="secondary-btn">📤 Export</button>
+            </div>
+
+            <div class="search-bar">
+                <input type="text" id="client-search" placeholder="Search clients...">
+            </div>
+
+            <div id="clients-list" class="clients-grid"></div>
+
+            <!-- Client Modal -->
+            <div id="client-modal" class="modal">
+                <div class="modal-content">

@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Freelancer AI Toolkit - Settings</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1e293b;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .section h2 {
+            color: #334155;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        .setting-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #374151;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+        }
+        .save-btn {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 16px;
+        }
+        .save-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+        .danger-zone {
+            border: 1px solid #fee2e2;
+            background: #fef2f2;
+        }
+        .danger-btn {
+            background: #dc2626;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Freelancer AI Toolkit Settings</h1>
+
+        <div class="section">
+            <h2>AI Configuration</h2>
+            <div class="setting-group">
+                <label>Preferred AI Provider:</label>
+                <select id="ai-provider">
+                    <option value="huggingface">Hugging Face (Free)</option>
+                    <option value="cohere">Cohere (Free Tier)</option>
+                    <option value="openai">OpenAI (API Key Required)</option>
+                    <option value="local">Local AI (Experimental)</option>
+                </select>
+            </div>
+            <div class="setting-group">
+                <label>API Key (if required):</label>
+                <input type="password" id="api-key" placeholder="Enter your API key">
+            </div>
+            <div class="setting-group">
+                <label>Default Response Tone:</label>
+                <select id="default-tone">
+                    <option value="professional">Professional</option>
+                    <option value="friendly">Friendly</option>
+                    <option value="confident">Confident</option>
+                    <option value="creative">Creative</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Auto-Sync Settings</h2>
+            <div class="checkbox-group">
+                <input type="checkbox" id="auto-sync-gmail">
+                <label for="auto-sync-gmail">Auto-scan Gmail for income</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="auto-sync-whatsapp">
+                <label for="auto-sync-whatsapp">Auto-scan WhatsApp for payments</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="auto-backup">
+                <label for="auto-backup">Auto-backup data weekly</label>
+            </div>
+            <div class="setting-group">
+                <label>Sync Frequency:</label>
+                <select id="sync-frequency">
+                    <option value="hourly">Every Hour</option>
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                    <option value="manual">Manual Only</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Notifications</h2>
+            <div class="checkbox-group">
+                <input type="checkbox" id="show-notifications">
+                <label for="show-notifications">Show notifications</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="payment-alerts">
+                <label for="payment-alerts">Alert when payment detected</label>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="weekly-reports">
+                <label for="weekly-reports">Weekly income reports</label>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Personal Information</h2>
+            <div class="setting-group">
+                <label>Your Name:</label>
+                <input type="text" id="user-name" placeholder="Enter your name">
+            </div>
+            <div class="setting-group">
+                <label>Email:</label>
+                <input type="email" id="user-email" placeholder="Enter your email">
+            </div>
+            <div class="setting-group">
+                <label>Business Name:</label>
+                <input type="text" id="business-name" placeholder="Enter your business name">
+            </div>
+            <div class="setting-group">
+                <label>Currency:</label>
+                <select id="currency">
+                    <option value="USD">USD ($)</option>
+                    <option value="EUR">EUR (€)</option>
+                    <option value="GBP">GBP (£)</option>
+                    <option value="CAD">CAD ($)</option>
+                    <option value="AUD">AUD ($)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>Invoice Templates</h2>
+            <div class="setting-group">
+                <label>Default Invoice Template:</label>
+                <select id="default-invoice">
+                    <option value="basic">Basic</option>
+                    <option value="professional">Professional</option>
+                    <option value="creative">Creative</option>
+                </select>
+            </div>
+            <div class="setting-group">
+                <label>Payment Terms:</label>
+                <textarea id="payment-terms" rows="3" placeholder="Enter default payment terms">Payment is due within 30 days of invoice date. Late payments may incur additional fees.</textarea>
+            </div>
+        </div>
+
+        <div class="section danger-zone">
+            <h2>⚠️ Danger Zone</h2>
+            <p>These actions cannot be undone.</p>
+            <button class="danger-btn" id="export-data">📤 Export All Data</button>
+            <button class="danger-btn" id="import-data">📥 Import Data</button>
+            <button class="danger-btn" id="clear-data">🗑️ Clear All Data</button>
+            <input type="file" id="import-file" accept=".json" style="display: none;">
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="save-btn" id="save-settings">💾 Save Settings</button>
+        </div>
+    </div>
+
+    <script>
+        // Settings page functionality
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadSettings();
+
+            document.getElementById('save-settings').addEventListener('click', saveSettings);
+            document.getElementById('export-data').addEventListener('click', exportData);
+            document.getElementById('import-data').addEventListener('click', () => {
+                document.getElementById('import-file').click();
+            });
+            document.getElementById('import-file').addEventListener('change', importData);
+            document.getElementById('clear-data').addEventListener('click', clearAllData);
+        });
+
+        async function loadSettings() {
+            const result = await chrome.storage.local.get(['settings']);
+            const settings = result.settings || {};
+
+            // Load all settings into form fields
+            document.getElementById('ai-provider').value = settings.aiProvider || 'huggingface';
+            document.getElementById('api-key').value = settings.apiKey || '';
+            document.getElementById('default-tone').value = settings.defaultTone || 'professional';
+            document.getElementById('auto-sync-gmail').checked = settings.autoSyncGmail || false;
+            document.getElementById('auto-sync-whatsapp').checked = settings.autoSyncWhatsApp || false;
+            document.getElementById('auto-backup').checked = settings.autoBackup || false;
+            document.getElementById('sync-frequency').value = settings.syncFrequency || 'daily';
+            document.getElementById('show-notifications').checked = settings.showNotifications !== false;
+            document.getElementById('payment-alerts').checked = settings.paymentAlerts !== false;
+            document.getElementById('weekly-reports').checked = settings.weeklyReports !== false;
+            document.getElementById('user-name').value = settings.userName || '';
+            document.getElementById('user-email').value = settings.userEmail || '';
+            document.getElementById('business-name').value = settings.businessName || '';
+            document.getElementById('currency').value = settings.currency || 'USD';
+            document.getElementById('default-invoice').value = settings.defaultInvoice || 'basic';
+            document.getElementById('payment-terms').value = settings.paymentTerms || 'Payment is due within 30 days of invoice date. Late payments may incur additional fees.';
+        }
+
+        async function saveSettings() {
+            const settings = {
+                aiProvider: document.getElementById('ai-provider').value,
+                apiKey: document.getElementById('api-key').value,
+                defaultTone: document.getElementById('default-tone').value,
+                autoSyncGmail: document.getElementById('auto-sync-gmail').checked,
+                autoSyncWhatsApp: document.getElementById('auto-sync-whatsapp').checked,
+                autoBackup: document.getElementById('auto-backup').checked,
+                syncFrequency: document.getElementById('sync-frequency').value,
+                showNotifications: document.getElementById('show-notifications').checked,
+                paymentAlerts: document.getElementById('payment-alerts').checked,
+                weeklyReports: document.getElementById('weekly-reports').checked,
+                userName: document.getElementById('user-name').value,
+                userEmail: document.getElementById('user-email').value,
+                businessName: document.getElementById('business-name').value,
+                currency: document.getElementById('currency').value,
+                defaultInvoice: document.getElementById('default-invoice').value,
+                paymentTerms: document.getElementById('payment-terms').value,
+                version: '1.0.0',
+                lastUpdated: new Date().toISOString()
+            };
+
+            await chrome.storage.local.set({ settings });
+
+            // Show success message
+            const btn = document.getElementById('save-settings');
+            const originalText = btn.textContent;
+            btn.textContent = '✅ Saved!';
+            btn.style.background = '#10b981';
+
+            setTimeout(() => {
+                btn.textContent = originalText;
+                btn.style.background = '';
+            }, 2000);
+        }
+
+        async function exportData() {
+            const data = await chrome.storage.local.get(null);
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `freelancer-toolkit-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+
+            URL.revokeObjectURL(url);
+        }
+
+        async function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            try {
+                const text = await file.text();
+                const data = JSON.parse(text);
+
+                if (confirm('This will overwrite all current data. Are you sure?')) {
+                    await chrome.storage.local.clear();
+                    await chrome.storage.local.set(data);
+
+                    alert('Data imported successfully! Please refresh the page.');
+                    window.location.reload();
+                }
+            } catch (error) {
+                alert('Error importing data: ' + error.message);
+            }
+        }
+
+        async function clearAllData() {
+            if (confirm('This will permanently delete all your data. Are you absolutely sure?')) {
+                if (confirm('Last chance - this cannot be undone!')) {
+                    await chrome.storage.local.clear();
+                    alert('All data cleared successfully!');
+                    window.location.reload();
+                }
+            }
+        }
+    </script>
+</body>
+</html>
